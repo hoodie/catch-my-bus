@@ -16,8 +16,8 @@ $SCRIPT_PATH = File.split(File.expand_path(__FILE__))[0]
 @little_sleep = 2
 
 stations = [
-  "Helmholzstrasse",
   "Münchnerplatz",
+  "Helmholzstrasse",
   #"Malterstraße"
 ]
 class TramStation
@@ -34,7 +34,11 @@ class TramStation
 
   def print
     string = ""
-    @destinations.each{ |n,t| string << "#{n} in #{t}min\n" }
+    @destinations.each{ |name,times|
+      string << "#{name} in\n"
+      times.each { |t| string << " #{t}min " }
+      string << "\n"
+    }
     return string
   end
   def notify
@@ -45,9 +49,8 @@ class TramStation
     arrival[2] = 0 if arrival[2] == ""
     arrival[2] = arrival[2].to_i
     dest = "#{arrival[0]} #{arrival[1]}"
-    if @destinations[dest].nil? or @destinations[dest] > arrival[2] 
-      @destinations[dest] = arrival[2]
-    end
+    @destinations[dest] = [] if @destinations[dest].nil? 
+    @destinations[dest] << arrival[2]
   end
 
   def update
