@@ -8,6 +8,10 @@ simple script that pops up notifications about your next bus
 edit the `config.yml` file and run in backround terminal
 there is no UI yet
 
+## Mac OSX
+
+ensure you installed `Growl` and the `growlnotify` binary to receive notifications
+
 ## known issues
 
 * the dvb api will apparently block your ip after n requests
