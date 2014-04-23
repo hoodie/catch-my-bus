@@ -4,6 +4,7 @@
 # GNU General Public License 2.
 # Please see the COPYING-GPL-2 file for details.
 
+require 'yaml'
 require 'net/http'
 require 'json'
 require 'notify'
@@ -11,15 +12,12 @@ require 'pp'
 
 $SCRIPT_PATH = File.split(File.expand_path(__FILE__))[0]
 
-
-@big_sleep = 180
+@big_sleep    = 180
 @little_sleep = 2
 
-stations = [
-  "Münchnerplatz",
-  "Helmholzstrasse",
-  #"Malterstraße"
-]
+config_file = 'config.yml'
+config      = YAML.load_file(config_file)
+
 class TramStation
   def initialize name
     @name = name
@@ -34,11 +32,11 @@ class TramStation
 
   def print
     string = ""
-    @destinations.each{ |name,times|
+    @destinations.each do |name,times|
       string << "#{name} in\n"
       times.each { |t| string << " #{t}min " }
       string << "\n"
-    }
+    end
     return string
   end
   def notify
@@ -49,30 +47,29 @@ class TramStation
     arrival[2] = 0 if arrival[2] == ""
     arrival[2] = arrival[2].to_i
     dest = "#{arrival[0]} #{arrival[1]}"
-    @destinations[dest] = [] if @destinations[dest].nil? 
+    @destinations[dest] = [] if @destinations[dest].nil?
     @destinations[dest] << arrival[2]
   end
 
   def update
     @destinations= {}
-
     uri = URI URI::encode "http://widgets.vvo-online.de/abfahrtsmonitor/Abfahrten.do?ort=Dresden&hst=#{@name}&vz=0"
-    JSON.parse(Net::HTTP.get(uri)).each { |a|
-      parse_arrival(a)
-    }
+    JSON.parse(Net::HTTP.get(uri)).each do |json|
+      parse_arrival(json)
+    end
   end
 end
 
+config['stations'].map!{ |station| TramStation.new station }
 
-stations.map!{ |station| TramStation.new station}
 while true do
-stations.each{ |station|
-  station.update
-  station.notify
-  station.show
-  sleep @little_sleep
-}
-sleep @big_sleep
+  config['stations'].each do |station|
+    station.update
+    station.notify
+    station.show
+    sleep @little_sleep
+  end
+  sleep @big_sleep
 end
 
 
